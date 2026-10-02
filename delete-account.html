@@ -1,0 +1,19 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Dead Dawn - Delete Account</title>
+<style>body{font:16px/1.6 system-ui,sans-serif;max-width:480px;margin:0 auto;padding:24px;color:#222}input,button{font:inherit;width:100%;box-sizing:border-box;padding:10px;margin:6px 0}button{background:#b3261e;color:#fff;border:0;border-radius:6px;cursor:pointer}#m{min-height:24px;font-weight:600}</style></head><body>
+<h1>Delete your Dead Dawn account</h1>
+<p>Enter your username and password to permanently delete your account and all saved progress online. This cannot be undone. Data stored on your device is removed from inside the game (or by uninstalling it).</p>
+<input id="u" placeholder="Username" autocomplete="username" autocapitalize="characters"><input id="p" type="password" placeholder="Password" autocomplete="current-password">
+<button id="b">Delete my account</button><div id="m"></div>
+<p>Can't sign in? Email <a href="mailto:jetnornoli028@gmail.com">jetnornoli028@gmail.com</a> from any address with your username and we will delete the account.</p>
+<script>
+const KEY='AIzaSyDaxRLWoJ9mKOX_Z7HrUB7U3MSM80OjEPw',DB='https://dead-dawn-default-rtdb.firebaseio.com',$=i=>document.getElementById(i);
+async function auth(path,body){const r=await fetch('https://identitytoolkit.googleapis.com/v1/accounts:'+path+'?key='+encodeURIComponent(KEY),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const j=await r.json().catch(()=>({}));if(!r.ok)throw(j.error&&j.error.message)||'ERR';return j}
+$('b').onclick=async()=>{const u=$('u').value.toUpperCase().replace(/[^A-Z0-9_-]/g,''),p=$('p').value,m=$('m');
+ if(u.length<3||!p){m.textContent='Enter your username and password.';return}
+ if(!confirm('Permanently delete this account and all its saved data?'))return;
+ m.textContent='Deleting...';$('b').disabled=true;
+ try{const j=await auth('signInWithPassword',{email:u.toLowerCase()+'@deaddawn.game',password:p,returnSecureToken:true});
+  const r=await fetch(DB+'/users/'+j.localId+'.json?auth='+encodeURIComponent(j.idToken),{method:'DELETE'});if(!r.ok)throw'DB';
+  await auth('delete',{idToken:j.idToken});m.textContent='Your account and saved data have been deleted.'}
+ catch(e){$('b').disabled=false;m.textContent=/INVALID|NOT_FOUND|PASSWORD/.test(e)?'Wrong username or password.':'Something went wrong. Try again or email us.'}};
+</script></body></html>
