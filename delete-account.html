@@ -1,0 +1,22 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Dead Dawn - Delete Account</title>
+<style>body{font:16px/1.6 system-ui,sans-serif;max-width:480px;margin:0 auto;padding:24px;color:#222}input,button{font:inherit;width:100%;box-sizing:border-box;padding:10px;margin:6px 0}button{background:#b3261e;color:#fff;border:0;border-radius:6px;cursor:pointer}#m{min-height:24px;font-weight:600}</style></head><body>
+<h1>Delete your Dead Dawn account</h1>
+<p>Sign in to permanently delete your account and all saved progress online. This cannot be undone. Data stored on your device is removed from inside the game (or by uninstalling it). Guests have no account to delete.</p>
+<input id="u" type="text" placeholder="Email (or old username)" autocomplete="username" autocapitalize="none" autocorrect="off"><input id="p" type="password" placeholder="Password" autocomplete="current-password" autocapitalize="none">
+<button id="b">Delete my account</button>
+<div id="gw" style="display:none"><p>Signed up with Google? Sign in with Google to confirm:</p><div id="gbtn"></div></div>
+<div id="m"></div>
+<p>Can't sign in? Email <a href="mailto:jetnornoli028@gmail.com">jetnornoli028@gmail.com</a> from your account email with your account details and we will delete the account.</p>
+<script>
+const KEY='AIzaSyDaxRLWoj9mKOX_Z7HrUB7U3MSM8OOjEPw',GCID='319190676357-ud8l8mr9r9nb4mdt4ktfqsm3jgmb0os0.apps.googleusercontent.com',DB='https://dead-dawn-default-rtdb.firebaseio.com',$=i=>document.getElementById(i),M=t=>$('m').textContent=t;
+const hex=u=>[...new TextEncoder().encode(u)].map(b=>b.toString(16).padStart(2,'0')).join('')+'@deaddawn.game';
+async function auth(path,body){const r=await fetch('https://identitytoolkit.googleapis.com/v1/accounts:'+path+'?key='+encodeURIComponent(KEY),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const j=await r.json().catch(()=>({}));if(!r.ok)throw(j.error&&j.error.message)||'ERR';return j}
+async function kill(j){if(!confirm('Permanently delete this account and all its saved data?'))return;M('Deleting...');
+ const r=await fetch(DB+'/users/'+j.localId+'.json?auth='+encodeURIComponent(j.idToken),{method:'DELETE'});if(!r.ok)throw'DB';
+ await auth('delete',{idToken:j.idToken});M('Your account and saved data have been deleted.');$('b').style.display='none'}
+const fail=e=>{$('b').disabled=false;M(/INVALID|NOT_FOUND|PASSWORD|IDP/.test(e)?'Could not sign in. Check your details.':'Something went wrong. Try again or email us.')};
+$('b').onclick=async()=>{const v=$('u').value.trim(),p=$('p').value;if(!v||!p){M('Enter your email and password.');return}
+ $('b').disabled=true;M('Signing in...');
+ try{await kill(await auth('signInWithPassword',{email:v.indexOf('@')>0?v.toLowerCase():hex(v),password:p,returnSecureToken:true}))}catch(e){fail(String(e))}};
+if(!/PASTE/.test(GCID)){$('gw').style.display='block';const s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';s.onload=()=>{google.accounts.id.initialize({client_id:GCID,callback:async r=>{M('Signing in...');try{await kill(await auth('signInWithIdp',{postBody:'id_token='+encodeURIComponent(r.credential)+'&providerId=google.com',requestUri:location.origin,returnSecureToken:true,returnIdpCredential:true}))}catch(e){fail(String(e))}}});google.accounts.id.renderButton($('gbtn'),{theme:'filled_blue',size:'large',text:'continue_with',shape:'pill'})};document.head.appendChild(s)}
+</script></body></html>
